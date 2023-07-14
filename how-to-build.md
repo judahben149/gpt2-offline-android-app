@@ -1,22 +1,22 @@
-## Prerequisites
-If you haven’t already, install [Android Studio](https://developer.android.com/studio/index.html), following the instructions on the website.
+## Prerrequisitos
+Si aún no lo has hecho, instala [Android Studio](https://developer.android.com/studio/index.html), siguiendo las instrucciones en el sitio web.
 
-*	Android Studio 2022.2.1 or above
-*	An Android device or Android emulator with more than 4G memory
+* Android Studio 2022.2.1 o superior.
+* Un dispositivo Android o un emulador de Android con más de 4 GB de memoria.
 
-## Building and Running with Android Studio
-*	Open Android Studio, and from the Welcome screen, select Open an existing Android Studio project.
-*	From the `Open File or Project` window that appears, navigate to and select the `lite/examples/generative_ai/android` directory from wherever you cloned the TensorFlow Lite sample GitHub repo.
-*	You may also need to install various platforms and tools according to error messages.
-*	Rename the converted `.tflite model` to `autocomplete.tflite` and copy it into `app/src/main/assets/` folder.
-*	Select menu `Build -> Make Project` to build the app (Ctrl+F9, depending on your version).
-*	Click menu `Run -> Run 'app'` (Shift+F10, depending on your version).
+## Compilación y ejecución con Android Studio
+* Abre Android Studio y, desde la pantalla de bienvenida, selecciona "Abrir un proyecto de Android Studio existente".
+* En la ventana "Abrir archivo o proyecto" que aparece, navega hasta el directorio `lite/examples/generative_ai/android` donde clonaste el repositorio de muestras de TensorFlow Lite.
+* Es posible que también necesites instalar varias plataformas y herramientas según los mensajes de error.
+* Cambia el nombre del modelo convertido `.tflite` a `autocomplete.tflite` y cópialo en la carpeta `app/src/main/assets/`.
+* Selecciona el menú "Construir -> Compilar proyecto" para compilar la aplicación (Ctrl+F9, dependiendo de tu versión).
+* Haz clic en el menú "Ejecutar -> Ejecutar 'app'" (Shift+F10, dependiendo de tu versión).
 
-Alternatively, you can also use the [gradle wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html#gradle_wrapper) to build it in the command line. Please refer to the [Gradle documentation](https://docs.gradle.org/current/userguide/command_line_interface.html) for more information.
+Alternativamente, también puedes utilizar el [wrapper de Gradle](https://docs.gradle.org/current/userguide/gradle_wrapper.html#gradle_wrapper) para compilarlo en la línea de comandos. Consulta la [documentación de Gradle](https://docs.gradle.org/current/userguide/command_line_interface.html) para obtener más información.
 
-## (Optional) Building the .aar file
-By default the app automatically downloads the needed .aar files. But if you want to build your own, switch to `app/libs/build_aar/` folder run `./build_aar.sh`. This script will pull in the necessary ops from [TensorFlow Text](https://www.tensorflow.org/text) and build the aar for [Select TF operators](https://www.tensorflow.org/lite/guide/ops_select).
+## (Opcional) Construcción del archivo .aar
+De forma predeterminada, la aplicación descarga automáticamente los archivos .aar necesarios. Pero si deseas construir los tuyos propios, cambia al directorio `app/libs/build_aar/` y ejecuta `./build_aar.sh`. Este script obtendrá las operaciones necesarias de [TensorFlow Text](https://www.tensorflow.org/text) y construirá el archivo .aar para [Select TF operators](https://www.tensorflow.org/lite/guide/ops_select).
 
-After compilation, a new file `tftext_tflite_flex.aar` is generated. Replace the `.aar` file in `app/libs/` folder and re-build the app.
+Después de la compilación, se generará un nuevo archivo `tftext_tflite_flex.aar`. Reemplaza el archivo `.aar` en la carpeta `app/libs/` y vuelve a compilar la aplicación.
 
-Note that you still need to include the standard `tensorflow-lite` aar in your gradle file.
+Ten en cuenta que aún debes incluir el archivo .aar estándar de `tensorflow-lite` en tu archivo de Gradle.
