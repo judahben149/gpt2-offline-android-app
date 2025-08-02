@@ -1,22 +1,22 @@
-# Inteligencia Artificial Generativa
+# Generative Artificial Intelligence
 
-## Introducción
-Los Modelos de Lenguaje Grande (LLMs, por sus siglas en inglés) son tipos de modelos de aprendizaje automático que se crean basándose en grandes conjuntos de datos de texto para generar diversos resultados para tareas de procesamiento del lenguaje natural (NLP, por sus siglas en inglés), como la generación de texto, la respuesta a preguntas y la traducción automática. Se basan en la arquitectura Transformer y se entrenan en grandes cantidades de datos de texto, a menudo que involucran miles de millones de palabras. Incluso los LLMs de escala más pequeña, como GPT-2, pueden tener un rendimiento impresionante. La conversión de modelos TensorFlow a un modelo más ligero, rápido y de bajo consumo permite ejecutar modelos de IA generativos en dispositivos, con beneficios de mayor seguridad del usuario porque los datos nunca abandonarán el dispositivo.
+## Introduction
+Large Language Models (LLMs) are types of machine learning models that are built based on large text datasets to generate various responses.
 
-Este ejemplo muestra cómo construir una aplicación para Android con TensorFlow Lite para ejecutar un modelo Keras LLM y proporciona sugerencias para la optimización del modelo utilizando técnicas de cuantificación, que de otra manera requerirían una cantidad mucho mayor de memoria y una mayor potencia computacional para ejecutarse.
+This example shows how to build an Android application with TensorFlow Lite to run a Keras LLM model and provides suggestions for model optimization using techniques such as quantization.
 
-Este ejemplo ha sido de código abierto y se ha proporcionado un marco de aplicación para Android en el que se pueden integrar los LLMs compatibles con TFLite. Aquí hay dos demostraciones:
-* En la Figura 1, se utilizó un modelo Keras GPT-2 para realizar tareas de completado de texto en el dispositivo.
+This example has been open-sourced and provides an application framework for Android in which LLMs compatible with TFLite can be integrated. Here are two demonstrations:
+* In Figure 1, a Keras GPT-2 model was used to perform text completion tasks on the device.
 
 <p align="center">
   <img src="figures/fig1.gif" width="300">
 </p>
-Figura 1: Ejemplo de ejecución del modelo Keras GPT-2 (convertido de este Codelab) en el dispositivo para realizar completado de texto en Pixel 7. La demostración muestra la latencia real sin aceleración.
+Figure 1: Example of running the Keras GPT-2 model (converted from this Codelab) on the device to perform text completion on a Pixel 7. The demo shows real latency without hardware acceleration.
 
-## Guías
-### Paso 1. Entrenar un modelo de lenguaje usando Keras
+## Guides
+### Step 1. Train a language model using Keras
 
-Para esta demostración, utilizaremos KerasNLP para obtener el modelo GPT-2. KerasNLP es una biblioteca que contiene modelos preentrenados de vanguardia para tareas de procesamiento del lenguaje natural y puede brindar soporte a los usuarios en todo su ciclo de desarrollo. Puedes ver la lista de modelos disponibles en el [repositorio de KerasNLP](https://github.com/keras-team/keras-nlp/tree/master/keras_nlp/models). Los flujos de trabajo se construyen a partir de componentes modulares que tienen pesos y arquitecturas preestablecidos de vanguardia cuando se usan directamente y son fácilmente personalizables cuando se necesita más control. La creación del modelo GPT-2 se puede realizar con los siguientes pasos:
+For this demonstration, we will use KerasNLP to obtain the GPT-2 model. KerasNLP is a library that contains state-of-the-art pretrained models for natural language processing tasks and can support users throughout their development cycle. You can view the list of available models in the [KerasNLP](https://github.com/keras-team/keras-nlp/tree/master/keras_nlp/models) repository. Workflows are built from modular components that have state-of-the-art pretrained weights and architectures when used directly, and are easily customizable when more control is needed. The GPT-2 model can be created with the following steps:
 
 ```python
 gpt2_tokenizer = keras_nlp.models.GPT2Tokenizer.from_preset("gpt2_base_en")
@@ -33,23 +33,23 @@ gpt2_lm = keras_nlp.models.GPT2CausalLM.from_preset(
 )
 ```
 
-Puedes consultar la implementación completa del modelo GPT-2 [en GitHub](https://github.com/keras-team/keras-nlp/tree/master/keras_nlp/models/gpt2).
+You can check the complete implementation of the GPT-2 model [en GitHub](https://github.com/keras-team/keras-nlp/tree/master/keras_nlp/models/gpt2).
 
 
-### Paso 2. Convertir un modelo de Keras a un modelo de TFLite
+### Step 2. Convert a Keras model to a TFLite model
 
-Comienza con la función `generate()` de GPT2CausalLM que realiza la conversión. Envuelve la función `generate()` para crear una función concreta de TensorFlow:
+Start with the generate() function of GPT2CausalLM that performs the conversion. Wrap the generate() function to create a concrete TensorFlow function:
 
 ```python
 @tf.function
 def generate(prompt, max_length):
-  # prompt: entrada al LLM en formato de cadena
-  # max_length: la longitud máxima de los tokens generados 
+  # prompt: input to the LLM in string format
+  # max_length: maximum length of the generated tokens
   return gpt2_lm.generate(prompt, max_length)
 concrete_func = generate.get_concrete_function(tf.TensorSpec([], tf.string), 100)
 ```
 
-Ahora define una función auxiliar que ejecutará la inferencia con una entrada y un modelo TFLite. Las operaciones de texto de TensorFlow no son operaciones incorporadas en TFLite, por lo que deberás agregar estas operaciones personalizadas para que el intérprete pueda realizar inferencias en este modelo. Esta función auxiliar acepta una entrada y una función que realiza la conversión, es decir, la función `generator()` definida anteriormente.
+Now define a helper function that will run inference with an input and a TFLite model. TensorFlow text operations are not built-in operations in TFLite, so you’ll need to add these custom operations for the interpreter to be able to perform inference on this model. This helper function accepts an input and a function that performs the conversion, i.e., the generator() function defined earlier.
 
 ```python
 def run_inference(input, generate_tflite):
@@ -62,7 +62,7 @@ def run_inference(input, generate_tflite):
   output = generator(prompt=np.array([input]))
 ```
 
-Ahora puedes convertir el modelo:
+Now you can convert the model:
 
 ```python
 gpt2_lm.jit_compile = False
@@ -73,8 +73,8 @@ ite.TFLiteConverter.from_concrete_functions(
   gpt2_lm)
 
 converter.target_spec.supported_ops = [
-  tf.lite.OpsSet.TFLITE_BUILTINS, # habilita las operaciones de TFLite
-  tf.lite.OpsSet.SELECT_TF_OPS, # habilita las operaciones de TF
+  tf.lite.OpsSet.TFLITE_BUILTINS, # enable TFLite operations
+  tf.lite.OpsSet.SELECT_TF_OPS, # enable TF operations
 ]
 converter.allow_custom_ops = True
 converter.target_spec.experimental_select_user_tf_ops = [
@@ -83,13 +83,20 @@ converter.target_spec.experimental_select_user_tf_ops = [
 ]
 converter._experimental_guarantee_all_funcs_one_use = True
 generate_tflite = converter.convert()
-run_inference("Estoy disfrutando de", generate_tflite)
+run_inference("I am enjoying", generate_tflite)
 ```
 
-### Paso 3. Cuantización
-TensorFlow Lite ha implementado una técnica de optimización llamada cuantización que puede reducir el tamaño del modelo y acelerar la inferencia. A través del proceso de cuantización, los números de punto flotante de 32 bits se asignan a enteros de 8 bits más pequeños, lo que reduce el tamaño del modelo en un factor de 4 para una ejecución más eficiente en hardware moderno. Hay varias formas de realizar la cuantización en TensorFlow. Puedes visitar las páginas de [Optimización de modelos de TFLite](https://www.tensorflow.org/lite/performance/model_optimization) y [TensorFlow Model Optimization Toolkit](https://www.tensorflow.org/model_optimization) para obtener más información. A continuación, se explican brevemente los tipos de cuantización.
+### Step 3. Quantization
 
-Aquí, utilizarás la cuantización dinámica posterior al entrenamiento en el modelo GPT-2 configurando la bandera de optimización del convertidor en tf.lite.Optimize.DEFAULT, y el resto del proceso de conversión es el mismo que se detalló anteriormente. Probamos que con esta técnica de cuantización, la latencia es de aproximadamente 6.7 segundos en Pixel 7 con una longitud máxima de salida establecida en 100.
+TensorFlow Lite has implemented an optimization technique called quantization that can reduce model size and speed up inference. Through the quantization process, 32-bit floating point numbers are mapped to smaller 8-bit integers, reducing the model size by a factor of 4 for more efficient execution on modern hardware. 
+
+There are several ways to perform quantization in TensorFlow. You can visit the [TFLite Model Optimization](https://www.tensorflow.org/lite/performance/model_optimization) and [TensorFlow Model Optimization Toolkit](https://www.tensorflow.org/model_optimization) pages for more information.
+
+Below is a brief explanation of the types of quantization.
+
+Here, you will use post-training dynamic quantization on the GPT-2 model by setting the converter’s optimization flag to `tf.lite.Optimize.DEFAULT`, and the rest of the conversion process is the same as previously described. 
+
+We observed that with this quantization technique, the latency is approximately 6.7 seconds on a Pixel 7 with a maximum output length set to 100.
 
 ```python
 gpt2_lm.jit_compile = False
@@ -98,8 +105,8 @@ converter = tf.lite.TFLiteConverter.from_concrete_functions(
   gpt2_lm)
 
 converter.target_spec.supported_ops = [
-  tf.lite.OpsSet.TFLITE_BUILTINS, # habilita las operaciones de TFLite
-  tf.lite.OpsSet.SELECT_TF_OPS, # habilita las operaciones de TF
+  tf.lite.OpsSet.TFLITE_BUILTINS, # enables TFLite operations
+  tf.lite.OpsSet.SELECT_TF_OPS, # enables TF operations
 ]
 converter.allow_custom_ops = True
 converter.optimizations = [tf.lite.Optimize.DEFAULT]
@@ -109,7 +116,7 @@ converter.target_spec.experimental_select_user_tf_ops = [
 ]
 converter._experimental_guarantee_all_funcs_one_use = True
 quant_generate_tflite = converter.convert()
-run_inference("Estoy disfrutando de", quant_generate_tflite)
+run_inference("I'm enjoying", quant_generate_tflite)
 
 with open('gpt2_cuantificado.tflite', 'wb') as f:
   f.write(quant_generate_tflite)
@@ -117,9 +124,16 @@ with open('gpt2_cuantificado.tflite', 'wb') as f:
 
 
 
-### Paso 4. Integración con la aplicación de Android
+### Step 4. Integration with the Android App
 
-Puedes clonar este repositorio y sustituir `android/app/src/main/assets/autocomplete.tflite` con tu archivo `quant_generate_tflite` convertido.
+You can clone this repository and replace `android/app/src/main/assets/autocomplete.tflite` with your converted `quant_generate_tflite` file.
 
-## Seguridad y IA responsable
-Como se menciona en el anuncio original de [OpenAI GPT-2](https://openai.com/research/better-language-models), hay [caveats y limitaciones notables](https://github.com/openai/gpt-2#some-caveats) con el modelo GPT-2. De hecho, los LLM en general tienen algunos desafíos conocidos, como alucinaciones, imparcialidad y sesgo; esto se debe a que estos modelos se entrenan en datos del mundo real, lo que los hace reflejar problemas del mundo real. Este codelab se crea únicamente para demostrar cómo crear una aplicación con alimentación de LLMs utilizando las herramientas de TensorFlow. El modelo producido en este codelab es solo para fines educativos y no está destinado a su uso en producción. El uso en producción de LLMs requiere una selección cuidadosa de conjuntos de datos de entrenamiento y mitigaciones de seguridad integrales. Una de las funcionalidades ofrecidas en esta aplicación de Android es el filtro de lenguaje ofensivo, que rechaza las entradas o salidas inapropiadas del modelo. Si se detecta cualquier lenguaje inapropiado, la aplicación rechazará esa acción. Para obtener más información sobre IA responsable en el contexto de LLMs, asegúrate de ver la sesión técnica Safe and Responsible Development with Generative Language Models en Google I/O 2023 y consultar el [Responsible AI Toolkit](https://www.tensorflow.org/responsible_ai).
+## Safety and Responsible AI
+
+As mentioned in the original [OpenAI GPT-2](https://openai.com/research/better-language-models) announcement, there are [notable caveats and limitations](https://github.com/openai/gpt-2#some-caveats) with the GPT-2 model. In fact, large language models (LLMs) in general face known challenges such as hallucinations, fairness, and bias. This is because these models are trained on real-world data, which causes them to reflect real-world issues.
+
+This codelab is created solely to demonstrate how to build an application powered by LLMs using TensorFlow tools. The model produced in this codelab is for educational purposes only and is not intended for production use. Production use of LLMs requires careful selection of training datasets and comprehensive safety mitigations.
+
+One of the features offered in this Android application is offensive language filtering, which rejects inappropriate model inputs or outputs. If any inappropriate language is detected, the app will block the action.
+
+For more information on responsible AI in the context of LLMs, be sure to watch the technical session Safe and Responsible Development with Generative Language Models from Google I/O 2023 and explore the [Responsible AI Toolkit](https://www.tensorflow.org/responsible_ai).
